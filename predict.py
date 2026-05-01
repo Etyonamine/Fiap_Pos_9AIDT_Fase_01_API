@@ -4,7 +4,7 @@ import pandas as pd
 import logging
 from app import app
 from flask import Flask, request, jsonify, redirect
-from model_predict import predict as run_predict
+from predict import predict as run_predict
 
 
 logger = logging.getLogger(__name__)

@@ -5,7 +5,7 @@ from flasgger import Swagger
 import joblib
 from schemas.input_schema import input_schema
 from schemas.output_schema import output_schema
-from model_predict import predict
+from predict import predict
 
 
 app = Flask(__name__)
