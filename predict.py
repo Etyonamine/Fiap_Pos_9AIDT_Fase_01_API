@@ -2,38 +2,9 @@ import decimal
 import numpy as np
 import pandas as pd
 import logging
-from app import app
-from flask import Flask, request, jsonify, redirect
-from predict import predict as run_predict
-
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
-
-@app.route("/predict", methods=["POST"])
-def predict():
-    """
-    ---
-    parameters:
-      - in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/InputModel'
-    responses:
-      200:
-        description: Resultado da predição
-        schema:
-          $ref: '#/definitions/OutputModel'
-    """
-    data = request.get_json()
-    indice_probabilidade = data.get("indice_probabilidade")
-
-    # Faz o log no console
-    logger.info(f"Indice de probabilidade recebido: {indice_probabilidade}")
-
-    result = run_predict(data, xgb_model, imputer, feature_columns, indice_probabilidade)
-    return jsonify(result)
 
 BINARY_COLS = [
     'VIOL_FISIC', 'VIOL_PSICO', 'VIOL_TORT', 'VIOL_FINAN',
