@@ -1,0 +1,187 @@
+from flask import Flask, request, jsonify
+from flasgger import Swagger, swag_from
+import joblib
+
+from predict import predict as run_predict
+
+app = Flask(__name__)
+
+swagger_config = {
+    "headers": [],
+    "specs": [
+        {
+            "endpoint": "apispec",
+            "route": "/apispec.json",
+            "rule_filter": lambda rule: True,
+            "model_filter": lambda tag: True,
+        }
+    ],
+    "static_url_path": "/flasgger_static",
+    "swagger_ui": True,
+    "specs_route": "/docs/",
+}
+
+swagger_template = {
+    "info": {
+        "title": "API de Predição de Violência Sexual",
+        "description": (
+            "API que utiliza um modelo XGBoost embarcado para estimar a "
+            "probabilidade de violência sexual a partir dos campos brutos "
+            "de uma notificação de violência."
+        ),
+        "version": "1.0.0",
+    },
+    "consumes": ["application/json"],
+    "produces": ["application/json"],
+}
+
+swagger = Swagger(app, config=swagger_config, template=swagger_template)
+
+xgb_model = joblib.load("model/xgb_viol_sexu.joblib")
+imputer = joblib.load("model/imputer.joblib")
+feature_columns = joblib.load("model/feature_columns.joblib")
+
+
+@app.route("/predict", methods=["POST"])
+def predict():
+    """
+    Predição de violência sexual a partir de uma notificação.
+    ---
+    tags:
+      - Predição
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - IDADE_ANOS
+          properties:
+            IDADE_ANOS:
+              type: integer
+              description: "Idade em anos (0–125)"
+              example: 23
+            VIOL_FISIC:
+              type: integer
+              description: "Violência física (1=Sim, 2=Não, 9=Ignorado)"
+              example: 1
+            VIOL_PSICO:
+              type: integer
+              description: "Violência psicológica (1=Sim, 2=Não, 9=Ignorado)"
+              example: 1
+            VIOL_TORT:
+              type: integer
+              description: "Tortura (1=Sim, 2=Não, 9=Ignorado)"
+              example: 2
+            VIOL_FINAN:
+              type: integer
+              description: "Violência financeira (1=Sim, 2=Não, 9=Ignorado)"
+              example: 2
+            VIOL_NEGLI:
+              type: integer
+              description: "Negligência (1=Sim, 2=Não, 9=Ignorado)"
+              example: 2
+            VIOL_INFAN:
+              type: integer
+              description: "Violência infantil (1=Sim, 2=Não, 9=Ignorado)"
+              example: 2
+            VIOL_LEGAL:
+              type: integer
+              description: "Violência legal (1=Sim, 2=Não, 9=Ignorado)"
+              example: 2
+            VIOL_OUTR:
+              type: integer
+              description: "Outros tipos de violência (1=Sim, 2=Não, 9=Ignorado)"
+              example: 2
+            LES_AUTOP:
+              type: integer
+              description: "Lesão autoprovocada (1=Sim, 2=Não, 9=Ignorado)"
+              example: 2
+            AUTOR_ALCO:
+              type: integer
+              description: "Autor sob efeito de álcool (1=Sim, 2=Não, 9=Ignorado)"
+              example: 1
+            OUT_VEZES:
+              type: integer
+              description: "Ocorreu outras vezes (1=Sim, 2=Não, 9=Ignorado)"
+              example: 1
+            CS_GESTANT:
+              type: integer
+              description: >
+                Gestação (1=1º tri, 2=2º tri, 3=3º tri,
+                4=Idade gestacional ignorada, 5=Não gestante,
+                6=Não se aplica, 8=Não informado)
+              example: 5
+            CS_RACA:
+              type: integer
+              description: "Raça/cor (1=Branca, 2=Preta, 3=Amarela, 4=Parda, 5=Indígena)"
+              example: 4
+            CS_ESCOL_N:
+              type: integer
+              description: >
+                Escolaridade (0=Sem escol., 1=Fund. I incomp., 2=Fund. I comp.,
+                3=Fund. II incomp., 4=Fund. II comp., 5=Médio incomp.,
+                6=Médio comp., 7=Superior incomp., 8=Superior comp.,
+                10=Não informado)
+              example: 3
+            LOCAL_OCOR:
+              type: integer
+              description: >
+                Local de ocorrência (1=Residência, 2=Hab. coletiva, 3=Escola,
+                4=Esporte, 5=Bar/Boate, 6=Via pública, 7=Comércio, 8=Indústria)
+              example: 1
+            AUTOR_SEXO:
+              type: integer
+              description: "Sexo do autor (1=Masculino, 2=Feminino, 3=Ambos, 4=Ignorado)"
+              example: 1
+    responses:
+      200:
+        description: Resultado da predição
+        schema:
+          type: object
+          properties:
+            probabilidade_viol_sexual:
+              type: number
+              format: float
+              description: "Probabilidade estimada de violência sexual (0–1)"
+              example: 0.8523
+            classificacao:
+              type: string
+              description: '"violencia_sexual" ou "sem_violencia_sexual"'
+              example: "violencia_sexual"
+            alerta:
+              type: boolean
+              description: "true se probabilidade ≥ 0.5"
+              example: true
+      400:
+        description: Requisição inválida (corpo ausente ou não é JSON)
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "O corpo da requisição deve ser um JSON válido."
+      500:
+        description: Erro interno do servidor
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "Erro interno: <mensagem>"
+    """
+    data = request.get_json(silent=True)
+    if data is None:
+        return jsonify({"error": "O corpo da requisição deve ser um JSON válido."}), 400
+
+    try:
+        result = run_predict(data, xgb_model, imputer, feature_columns)
+    except Exception as exc:
+        return jsonify({"error": f"Erro interno: {exc}"}), 500
+
+    return jsonify(result), 200
+
+
+if __name__ == "__main__":
+    app.run(debug=False, host="0.0.0.0", port=5000)
