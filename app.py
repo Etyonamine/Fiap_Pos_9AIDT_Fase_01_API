@@ -1,5 +1,7 @@
+import logging
+
 from flask import Flask, request, jsonify
-from flasgger import Swagger, swag_from
+from flasgger import Swagger
 import joblib
 
 from predict import predict as run_predict
@@ -37,9 +39,24 @@ swagger_template = {
 
 swagger = Swagger(app, config=swagger_config, template=swagger_template)
 
-xgb_model = joblib.load("model/xgb_viol_sexu.joblib")
-imputer = joblib.load("model/imputer.joblib")
-feature_columns = joblib.load("model/feature_columns.joblib")
+logger = logging.getLogger(__name__)
+
+_MODEL_FILES = {
+    "xgb_model": "model/xgb_viol_sexu.joblib",
+    "imputer": "model/imputer.joblib",
+    "feature_columns": "model/feature_columns.joblib",
+}
+
+try:
+    xgb_model = joblib.load(_MODEL_FILES["xgb_model"])
+    imputer = joblib.load(_MODEL_FILES["imputer"])
+    feature_columns = joblib.load(_MODEL_FILES["feature_columns"])
+except FileNotFoundError as exc:
+    raise SystemExit(
+        f"Arquivo de modelo não encontrado: {exc}. "
+        "Certifique-se de que os arquivos xgb_viol_sexu.joblib, "
+        "imputer.joblib e feature_columns.joblib estão na pasta model/."
+    ) from exc
 
 
 @app.route("/predict", methods=["POST"])
@@ -178,7 +195,8 @@ def predict():
     try:
         result = run_predict(data, xgb_model, imputer, feature_columns)
     except Exception as exc:
-        return jsonify({"error": f"Erro interno: {exc}"}), 500
+        logger.exception("Erro ao processar predição: %s", exc)
+        return jsonify({"error": "Erro interno ao processar a predição."}), 500
 
     return jsonify(result), 200
 
