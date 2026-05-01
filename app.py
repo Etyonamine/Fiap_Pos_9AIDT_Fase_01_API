@@ -1,10 +1,12 @@
 import logging
 
-from flask import Flask, request, jsonify
+from flask import Flask, redirect, request, jsonify
 from flasgger import Swagger
 import joblib
+from schemas.input_schema import input_schema
+from schemas.output_schema import output_schema
+from model_predict import predict
 
-from predict import predict as run_predict
 
 app = Flask(__name__)
 
@@ -26,20 +28,25 @@ swagger_config = {
 swagger_template = {
     "info": {
         "title": "API de Predição de Violência Sexual",
-        "description": (
-            "API que utiliza um modelo XGBoost embarcado para estimar a "
-            "probabilidade de violência sexual a partir dos campos brutos "
-            "de uma notificação de violência."
-        ),
+        "description": "API que utiliza XGBoost para estimar probabilidade de violência sexual.",
         "version": "1.0.0",
     },
-    "consumes": ["application/json"],
-    "produces": ["application/json"],
+    "definitions": {
+        "InputModel": input_schema,
+        "OutputModel": output_schema
+    }
 }
 
 swagger = Swagger(app, config=swagger_config, template=swagger_template)
 
+
+
 logger = logging.getLogger(__name__)
+
+# declara antes para o linter saber que existem
+xgb_model = None
+imputer = None
+feature_columns = None
 
 _MODEL_FILES = {
     "xgb_model": "model/xgb_viol_sexu.joblib",
@@ -58,6 +65,9 @@ except FileNotFoundError as exc:
         "imputer.joblib e feature_columns.joblib estão na pasta model/."
     ) from exc
 
+@app.route("/", methods=["GET"])
+def index():
+    return redirect("/docs/") 
 
 @app.route("/predict", methods=["POST"])
 def predict():
@@ -152,6 +162,13 @@ def predict():
               type: integer
               description: "Sexo do autor (1=Masculino, 2=Feminino, 3=Ambos, 4=Ignorado)"
               example: 1
+            indice_probabilidade:
+              type: number
+              format: float
+              minimum: 0
+              maximum: 1
+              description: "Índice decimal de probabilidade (0–1) fornecido como entrada"
+              exemplo: 0.4
     responses:
       200:
         description: Resultado da predição
@@ -193,7 +210,9 @@ def predict():
         return jsonify({"error": "O corpo da requisição deve ser um JSON válido."}), 400
 
     try:
-        result = run_predict(data, xgb_model, imputer, feature_columns)
+        indice_probabilidade = data["indice_probabilidade"]
+
+        result = predict(data, xgb_model, imputer, feature_columns, indice_probabilidade)
     except Exception as exc:
         logger.exception("Erro ao processar predição: %s", exc)
         return jsonify({"error": "Erro interno ao processar a predição."}), 500
@@ -202,4 +221,4 @@ def predict():
 
 
 if __name__ == "__main__":
-    app.run(debug=False, host="0.0.0.0", port=5000)
+    app.run(host="127.0.0.1", port=5000, debug=True)
