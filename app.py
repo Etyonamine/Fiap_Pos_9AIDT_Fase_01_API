@@ -5,7 +5,7 @@ from flasgger import Swagger
 import joblib
 from schemas.input_schema import input_schema
 from schemas.output_schema import output_schema
-from predict import predict
+from predict import predict as run_predict
 
 
 app = Flask(__name__)
@@ -212,7 +212,7 @@ def predict():
     try:
         indice_probabilidade = data["indice_probabilidade"]
 
-        result = predict(data, xgb_model, imputer, feature_columns, indice_probabilidade)
+        result = run_predict(data, xgb_model, imputer, feature_columns, indice_probabilidade)
     except Exception as exc:
         logger.exception("Erro ao processar predição: %s", exc)
         return jsonify({"error": "Erro interno ao processar a predição."}), 500
