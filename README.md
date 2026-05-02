@@ -17,7 +17,7 @@ API em Python (Flask + Flasgger) que embarca um modelo XGBoost para predição d
 
 ## Pré-requisitos
 
-- Python 3.10+
+- Python 3.14+
 - Arquivos de modelo em `model/` (gerados pelo pipeline de treino):
   - `xgb_viol_sexu.joblib`
   - `imputer.joblib`
