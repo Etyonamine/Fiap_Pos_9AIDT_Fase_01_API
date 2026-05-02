@@ -34,7 +34,7 @@ swagger_template = {
         "description": "API que utiliza XGBoost para estimar probabilidade de violência sexual.",
         "version": "1.0.0",
     },
-    "host": os.environ.get("API_HOST", "localhost:8088"),
+    "host": os.environ.get("API_HOST", "localhost:5000"),
     "definitions": {
         "InputModel": input_schema,
         "OutputModel": output_schema

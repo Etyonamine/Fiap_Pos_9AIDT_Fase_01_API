@@ -35,8 +35,8 @@ pip install -r requirements.txt
 python app.py
 ```
 
-A API estará disponível em `http://localhost:8088`.  
-A documentação Swagger (Flasgger) estará em `http://localhost:8088/docs/`.
+A API estará disponível em `http://localhost:5000`.  
+A documentação Swagger (Flasgger) estará em `http://localhost:5000/docs/`.
 
 ## Endpoint
 
@@ -150,14 +150,14 @@ docker compose build --no-cache
 docker compose ps
 ```
 
-A saída esperada mostra o container `fiap_fase01_api` com status `running` e a porta `8088` exposta.
+A saída esperada mostra o container `fiap_fase01_api` com status `running` e a porta `5000` exposta.
 
 **5. Acesse a API**
 
 | Recurso | URL |
 |---|---|
-| Endpoint de predição | `http://localhost:8088/predict` |
-| Documentação Swagger | `http://localhost:8088/docs/` |
+| Endpoint de predição | `http://localhost:5000/predict` |
+| Documentação Swagger | `http://localhost:5000/docs/` |
 
 **6. (Opcional) Executar em segundo plano**
 

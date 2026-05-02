@@ -5,11 +5,11 @@ services:
       dockerfile: Dockerfile
     container_name: fiap_fase01_api
     ports:
-      - "8088:5000"
+      - "5000:5000"
     volumes:
       - ./model:/app/model:ro
     environment:
       - FLASK_APP=app.py
       - FLASK_ENV=production
-      - API_HOST=localhost:8088
+      - API_HOST=localhost:5000
     restart: unless-stopped
