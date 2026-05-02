@@ -132,13 +132,17 @@ model/
 └── feature_columns.joblib
 ```
 
+Observação: Caso não existam, deve ser copiado do repositorio do ML pasta model no endereço https://github.com/Etyonamine/Fiap_Pos_9AIDT_Fase_01_ML
+
 **3. Construa a imagem e suba o container**
 
 ```bash
-docker compose up --build
+docker compose build --no-cache
 ```
 
-> Na primeira execução o Docker irá baixar a imagem base (`python:3.14-slim`) e instalar as dependências. As execuções seguintes serão mais rápidas pois o cache de camadas é reutilizado.
+> Na primeira execução o Docker irá baixar a imagem base (`python:3.12-slim`) e instalar as dependências. As execuções seguintes serão mais rápidas pois o cache de camadas é reutilizado.
+
+*Observação: Caso já exista a imagem no docker deve ser apagado
 
 **4. Verifique se o serviço está em execução**
 
