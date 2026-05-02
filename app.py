@@ -1,6 +1,7 @@
 import logging
 
 from flask import Flask, redirect, request, jsonify
+from flask_cors import CORS
 from flasgger import Swagger
 import joblib
 from schemas.input_schema import input_schema
@@ -9,6 +10,7 @@ from predict import predict as run_predict
 
 
 app = Flask(__name__)
+CORS(app)
 
 swagger_config = {
     "headers": [],
