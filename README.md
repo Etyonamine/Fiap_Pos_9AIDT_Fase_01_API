@@ -101,3 +101,77 @@ Recebe um JSON com os campos brutos da notificação e retorna a predição do m
 | classificacao | string | "violencia_sexual" ou "sem_violencia_sexual" |
 | alerta | bool | true se prob ≥ 0.5 (threshold padrão) |
 
+## Instalação via Docker Compose
+
+### Pré-requisitos
+
+- [Docker](https://docs.docker.com/get-docker/) instalado (versão 20.10+)
+- [Docker Compose](https://docs.docker.com/compose/install/) instalado (versão 2.0+ ou plugin `docker compose`)
+- Arquivos de modelo presentes na pasta `model/` do projeto:
+  - `xgb_viol_sexu.joblib`
+  - `imputer.joblib`
+  - `feature_columns.joblib`
+
+### Passo a passo
+
+**1. Clone o repositório**
+
+```bash
+git clone https://github.com/Etyonamine/Fiap_Pos_9AIDT_Fase_01_API.git
+cd Fiap_Pos_9AIDT_Fase_01_API
+```
+
+**2. Adicione os arquivos de modelo**
+
+Copie os arquivos do modelo treinado para a pasta `model/` na raiz do projeto:
+
+```
+model/
+├── xgb_viol_sexu.joblib
+├── imputer.joblib
+└── feature_columns.joblib
+```
+
+**3. Construa a imagem e suba o container**
+
+```bash
+docker compose up --build
+```
+
+> Na primeira execução o Docker irá baixar a imagem base (`python:3.14-slim`) e instalar as dependências. As execuções seguintes serão mais rápidas pois o cache de camadas é reutilizado.
+
+**4. Verifique se o serviço está em execução**
+
+```bash
+docker compose ps
+```
+
+A saída esperada mostra o container `fiap_fase01_api` com status `running` e a porta `5000` exposta.
+
+**5. Acesse a API**
+
+| Recurso | URL |
+|---|---|
+| Endpoint de predição | `http://localhost:5000/predict` |
+| Documentação Swagger | `http://localhost:5000/docs/` |
+
+**6. (Opcional) Executar em segundo plano**
+
+Para rodar o serviço em modo *detached* (sem bloquear o terminal):
+
+```bash
+docker compose up --build -d
+```
+
+**7. Parar o serviço**
+
+```bash
+docker compose down
+```
+
+Para parar e remover também os volumes criados:
+
+```bash
+docker compose down -v
+```
+
