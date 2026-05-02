@@ -17,7 +17,7 @@ API em Python (Flask + Flasgger) que embarca um modelo XGBoost para predição d
 
 ## Pré-requisitos
 
-- Python 3.14+
+- Python **≥ 3.11** (testado com 3.12, 3.13 e 3.14 — veja a [seção de compatibilidade](#compatibilidade-de-versões-do-python))
 - Arquivos de modelo em `model/` (gerados pelo pipeline de treino):
   - `xgb_viol_sexu.joblib`
   - `imputer.joblib`
@@ -26,6 +26,131 @@ API em Python (Flask + Flasgger) que embarca um modelo XGBoost para predição d
 ## Instalação
 
 ```bash
+pip install -r requirements.txt
+```
+
+## Compatibilidade de versões do Python
+
+As versões mínimas exigidas pelos pacotes do `requirements.txt` são:
+
+| Pacote | Versão no arquivo | Python mínimo | Wheels prontas para |
+|---|---|---|---|
+| `numpy` | 2.4.4 | ≥ 3.11 | 3.11, 3.12, 3.13, 3.14 |
+| `pandas` | 3.0.2 | ≥ 3.11 | 3.11, 3.12, 3.13, 3.14 |
+| `scipy` | 1.17.1 | ≥ 3.11 | 3.11, 3.12, 3.13, 3.14 |
+| `scikit-learn` | 1.8.0 | ≥ 3.11 | 3.11, 3.12, 3.13, 3.14 |
+| `shap` | 0.51.0 | ≥ 3.11 | 3.11, 3.12, 3.13, 3.14 |
+| `llvmlite` | 0.47.0 | ≥ 3.10 | 3.10, 3.11, 3.12, 3.13, 3.14 |
+| `numba` | 0.65.1 | ≥ 3.10 | 3.10, 3.11, 3.12, 3.13, 3.14 |
+| `cffi` | 2.0.0 | ≥ 3.9 | 3.9 … 3.14 |
+| `xgboost` | 2.1.4 | ≥ 3.8 | 3.8 … 3.14 |
+
+> **Conclusão:** o `requirements.txt` funciona com **Python 3.11, 3.12, 3.13 e 3.14**.  
+> Python 3.10 ou inferior causará falha na instalação de `numpy`, `pandas`, `scipy`, `scikit-learn` e `shap`.
+
+### Plataformas testadas
+
+Todos os pacotes acima disponibilizam *wheels* pré-compiladas para **Windows (x86-64)**, **macOS (Intel e Apple Silicon)** e **Linux (x86-64)**. Portanto, o `pip install -r requirements.txt` não exige compilador C/C++ nas plataformas mais comuns.
+
+---
+
+## Resolução de problemas comuns
+
+### ❌ `ERROR: Package X requires Python >=3.11`
+
+**Causa:** versão do Python instalada é inferior à 3.11.
+
+**Solução:**
+1. Verifique a versão atual: `python --version` ou `python3 --version`
+2. Instale o Python 3.12 ou 3.13 em [python.org/downloads](https://www.python.org/downloads/)
+3. No Windows, durante a instalação marque a opção **"Add Python to PATH"**
+4. Crie um novo ambiente virtual e reinstale:
+   ```bash
+   python3.12 -m venv .venv
+   # Windows:
+   .venv\Scripts\activate
+   # macOS / Linux:
+   source .venv/bin/activate
+   pip install -r requirements.txt
+   ```
+
+---
+
+### ❌ `pip` instala com a versão Python errada (Windows)
+
+**Causa:** o `pip` no PATH pertence a uma instalação antiga do Python.
+
+**Solução:** use sempre `python -m pip` vinculado ao interpretador correto:
+```bash
+python3.12 -m pip install -r requirements.txt
+```
+
+---
+
+### ❌ `Microsoft Visual C++ 14.0 or greater is required` (Windows)
+
+**Causa:** algum pacote não encontrou *wheel* pré-compilada e tentou compilar código C.  
+Isso **não deve ocorrer** com as versões do `requirements.txt` em Python 3.11–3.14, mas pode acontecer se a versão do Python for incompatível.
+
+**Solução:**
+1. Confirme que está usando Python 3.11, 3.12 ou 3.13 (onde há wheels disponíveis).
+2. Se ainda for necessário compilar, instale o **Build Tools for Visual Studio**:  
+   [visualstudio.microsoft.com/visual-cpp-build-tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)  
+   Selecione a carga de trabalho **"Desenvolvimento para desktop com C++"**.
+
+---
+
+### ❌ `xcrun: error: invalid active developer path` (macOS)
+
+**Causa:** Xcode Command Line Tools não está instalado.
+
+**Solução:**
+```bash
+xcode-select --install
+```
+
+---
+
+### ❌ `ERROR: Could not find a version that satisfies the requirement X==Y.Y.Y`
+
+**Causa:** versão exata do pacote não está disponível para a combinação Python + sistema operacional.
+
+**Solução:** tente instalar sem fixar a versão para verificar qual é compatível:
+```bash
+pip install <nome-do-pacote>
+```
+Em seguida, atualize o número de versão no `requirements.txt` se necessário.
+
+---
+
+### ❌ `pip` não encontra o `requirements.txt`
+
+**Causa:** o comando foi executado em um diretório diferente da raiz do projeto.
+
+**Solução:**
+```bash
+# Navegue até a pasta raiz do projeto clonado
+cd Fiap_Pos_9AIDT_Fase_01_API
+pip install -r requirements.txt
+```
+
+---
+
+### ⚠️ `pywinpty` não encontrado (Windows)
+
+O arquivo `requirements.txt` não lista `pywinpty` explicitamente, mas o pacote `terminado` — necessário para o Jupyter — declara `pywinpty>=1.1.0` como dependência condicional para Windows. O `pip` instala `pywinpty` automaticamente; nenhuma ação manual é necessária.
+
+---
+
+### ⚠️ `jupyter` ou `notebook` não abre no macOS com Apple Silicon (M1/M2/M3)
+
+**Causa:** alguns pacotes legados não têm wheel nativa para `arm64`.
+
+**Solução:** garanta que está usando Python instalado via [python.org](https://www.python.org/downloads/macos/) (Universal2) ou via [Homebrew](https://brew.sh):
+```bash
+brew install python@3.12
+python3.12 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
