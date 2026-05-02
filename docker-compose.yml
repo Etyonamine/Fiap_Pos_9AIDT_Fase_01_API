@@ -1,0 +1,14 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fiap_fase01_api
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./model:/app/model:ro
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=production
+    restart: unless-stopped
