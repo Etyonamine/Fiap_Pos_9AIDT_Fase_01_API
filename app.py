@@ -1,4 +1,5 @@
 import logging
+import os
 
 from flask import Flask, redirect, request, jsonify
 from flask_cors import CORS
@@ -33,6 +34,7 @@ swagger_template = {
         "description": "API que utiliza XGBoost para estimar probabilidade de violência sexual.",
         "version": "1.0.0",
     },
+    "host": os.environ.get("API_HOST", "localhost:8088"),
     "definitions": {
         "InputModel": input_schema,
         "OutputModel": output_schema
@@ -223,4 +225,4 @@ def predict():
 
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000)
