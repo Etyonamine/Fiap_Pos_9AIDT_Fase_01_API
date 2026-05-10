@@ -49,12 +49,36 @@ def preprocess_input(data: dict, feature_columns: list, imputer) -> np.ndarray:
     for col in CAT_COLS:
         v = data.get(col, None)
         col_dummies = [c for c in feature_columns if c.startswith(col + '_')]
+        known_categories = set()
+        for dummy in col_dummies:
+            try:
+                known_categories.add(float(dummy.split('_')[-1]))
+            except ValueError:
+                continue
+
+        if v is None:
+            for dummy in col_dummies:
+                row[dummy] = np.nan
+            continue
+
+        try:
+            v_float = float(v)
+        except (TypeError, ValueError):
+            for dummy in col_dummies:
+                row[dummy] = np.nan
+            continue
+
+        if v_float not in known_categories:
+            for dummy in col_dummies:
+                row[dummy] = np.nan
+            continue
+
         for dummy in col_dummies:
             try:
                 cat_val = float(dummy.split('_')[-1])  # ex: CS_GESTANT_5.0 → 5.0
             except ValueError:
                 cat_val = None
-            row[dummy] = 1.0 if (v is not None and cat_val is not None and float(v) == cat_val) else 0.0
+            row[dummy] = 1.0 if (cat_val is not None and v_float == cat_val) else 0.0
 
     # 4. Monta DataFrame na ordem exata do treino
     df = pd.DataFrame([row], columns=feature_columns)
@@ -64,14 +88,15 @@ def preprocess_input(data: dict, feature_columns: list, imputer) -> np.ndarray:
     return X
 
 
-def predict(data: dict, xgb_model, imputer, feature_columns, indice_probabilidade: decimal.Decimal) -> dict:
+def predict(data: dict, xgb_model, imputer, feature_columns, indice_probabilidade: decimal.Decimal = decimal.Decimal("0.5")) -> dict:
     """Executa o pipeline completo de predição de violência sexual.
 
     Pré-processa os dados brutos, aplica o modelo XGBoost e retorna a
     probabilidade estimada, a classificação e um indicador de alerta.
 
-    O threshold de classificação é 0.5: probabilidades ≥ 0.5 são
-    classificadas como ``"violencia_sexual"`` e alerta ``true``.
+    O threshold de classificação é fixo em 0.5 para o rótulo final:
+    probabilidades ≥ 0.5 são classificadas como ``"violencia_sexual"``.
+    O campo ``alerta`` usa o limiar ``indice_probabilidade`` (padrão 0.5).
 
     Args:
         data: Dicionário com os campos brutos da notificação.
@@ -83,7 +108,7 @@ def predict(data: dict, xgb_model, imputer, feature_columns, indice_probabilidad
         Dicionário com as chaves:
         - ``probabilidade_viol_sexual`` (float): Probabilidade 0–1.
         - ``classificacao`` (str): ``"violencia_sexual"`` ou ``"sem_violencia_sexual"``.
-        - ``alerta`` (bool): ``True`` se probabilidade ≥ 0.5.
+        - ``alerta`` (bool): ``True`` se probabilidade ≥ ``indice_probabilidade``.
     """
     X = preprocess_input(data, feature_columns, imputer)
     prob = xgb_model.predict_proba(X)[0][1]  # probabilidade de violência sexual

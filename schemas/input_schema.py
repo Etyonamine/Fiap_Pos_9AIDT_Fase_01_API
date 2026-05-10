@@ -17,6 +17,36 @@ input_schema = {
             "enum": [1, 2, 9],
             "description": "Violência psicológica: 1=Sim, 2=Não, 9=Ignorado"
         },
+        "VIOL_TORT": {
+            "type": "integer",
+            "enum": [1, 2, 9],
+            "description": "Tortura: 1=Sim, 2=Não, 9=Ignorado"
+        },
+        "VIOL_FINAN": {
+            "type": "integer",
+            "enum": [1, 2, 9],
+            "description": "Violência financeira: 1=Sim, 2=Não, 9=Ignorado"
+        },
+        "VIOL_NEGLI": {
+            "type": "integer",
+            "enum": [1, 2, 9],
+            "description": "Negligência: 1=Sim, 2=Não, 9=Ignorado"
+        },
+        "VIOL_INFAN": {
+            "type": "integer",
+            "enum": [1, 2, 9],
+            "description": "Violência infantil: 1=Sim, 2=Não, 9=Ignorado"
+        },
+        "VIOL_LEGAL": {
+            "type": "integer",
+            "enum": [1, 2, 9],
+            "description": "Violência legal: 1=Sim, 2=Não, 9=Ignorado"
+        },
+        "VIOL_OUTR": {
+            "type": "integer",
+            "enum": [1, 2, 9],
+            "description": "Outros tipos de violência: 1=Sim, 2=Não, 9=Ignorado"
+        },
         "LES_AUTOP": {
             "type": "integer",
             "enum": [1, 2, 9],
@@ -73,9 +103,9 @@ input_schema = {
         "indice_probabilidade": {
             "type": "number",
             "format": "float",
-            "minimum": 0.3,
+            "minimum": 0,
             "maximum": 1,
-            "description": "Índice decimal de probabilidade (0–1) fornecido como entrada"
+            "description": "Limiar opcional de alerta (0–1). Padrão: 0.5"
         }
     },
     "required": ["IDADE_ANOS", "CS_RACA", "CS_ESCOL_N"]

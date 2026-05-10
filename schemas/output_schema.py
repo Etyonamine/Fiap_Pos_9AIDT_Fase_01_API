@@ -14,7 +14,7 @@ output_schema = {
         },
         "alerta": {
             "type": "boolean",
-            "description": "True se probabilidade ≥ 0.5"
+            "description": "True se probabilidade ≥ indice_probabilidade (padrão 0.5)"
         }
     }
 }

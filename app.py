@@ -171,8 +171,8 @@ def predict():
               format: float
               minimum: 0
               maximum: 1
-              description: "Índice decimal de probabilidade (0–1) fornecido como entrada"
-              exemplo: 0.4
+              description: "Limiar opcional do alerta (0–1). Padrão: 0.5"
+              example: 0.4
     responses:
       200:
         description: Resultado da predição
@@ -190,7 +190,7 @@ def predict():
               example: "violencia_sexual"
             alerta:
               type: boolean
-              description: "true se probabilidade ≥ 0.5"
+              description: "true se probabilidade ≥ indice_probabilidade (padrão 0.5)"
               example: true
       400:
         description: Requisição inválida (corpo ausente ou não é JSON)
@@ -214,7 +214,9 @@ def predict():
         return jsonify({"error": "O corpo da requisição deve ser um JSON válido."}), 400
 
     try:
-        indice_probabilidade = data["indice_probabilidade"]
+        indice_probabilidade = float(data.get("indice_probabilidade", 0.5))
+        if not 0 <= indice_probabilidade <= 1:
+            return jsonify({"error": "O campo 'indice_probabilidade' deve estar entre 0 e 1."}), 400
 
         result = run_predict(data, xgb_model, imputer, feature_columns, indice_probabilidade)
     except Exception as exc:

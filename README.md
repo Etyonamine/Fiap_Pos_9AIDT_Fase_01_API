@@ -64,7 +64,8 @@ Recebe um JSON com os campos brutos da notificação e retorna a predição do m
   "CS_RACA": 4,
   "CS_ESCOL_N": 3,
   "LOCAL_OCOR": 1,
-  "AUTOR_SEXO": 1
+  "AUTOR_SEXO": 1,
+  "indice_probabilidade": 0.5
 }
 ```
 
@@ -92,6 +93,7 @@ Recebe um JSON com os campos brutos da notificação e retorna a predição do m
 | CS_ESCOL_N | Categórico | 0=Sem escol. · 1=Fund. I incomp. · 2=Fund. I comp. · 3=Fund. II incomp. · 4=Fund. II comp. · 5=Médio incomp. · 6=Médio comp. · 7=Superior incomp. · 8=Superior comp. · 10=Não informado |
 | LOCAL_OCOR | Categórico | 1=Residência · 2=Hab. coletiva · 3=Escola · 4=Esporte · 5=Bar/Boate · 6=Via pública · 7=Comércio · 8=Indústria |
 | AUTOR_SEXO | Categórico | 1=Masculino · 2=Feminino · 3=Ambos · 4=Ignorado |
+| indice_probabilidade | Numérico (opcional) | 0–1 (padrão 0.5, usado no campo `alerta`) |
 
 ### Campos de saída
 
@@ -99,7 +101,7 @@ Recebe um JSON com os campos brutos da notificação e retorna a predição do m
 |---|---|---|
 | probabilidade_viol_sexual | float (0–1) | Probabilidade estimada de violência sexual |
 | classificacao | string | "violencia_sexual" ou "sem_violencia_sexual" |
-| alerta | bool | true se prob ≥ 0.5 (threshold padrão) |
+| alerta | bool | true se prob ≥ `indice_probabilidade` (padrão 0.5) |
 
 ## Instalação via Docker Compose
 
@@ -178,4 +180,3 @@ Para parar e remover também os volumes criados:
 ```bash
 docker compose down -v
 ```
-
